@@ -14,25 +14,27 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ---------------------------------------------------------------------------
-# Build a direct psycopg2 connection string from Supabase credentials.
-# Supabase exposes a direct Postgres connection on port 5432.
-# Connection string format: postgresql://postgres:<service_key>@db.<project-ref>.supabase.co:5432/postgres
+# Connect via Supabase's Supavisor session pooler rather than the direct
+# db.<project-ref>.supabase.co host: the direct host is IPv6-only unless the
+# IPv4 add-on is purchased, and often fails to resolve on networks that don't
+# route IPv6. The pooler accepts the actual Postgres password (NOT the
+# service_role API key, which is a JWT used only for the REST/Auth APIs).
 # ---------------------------------------------------------------------------
 
 def get_connection():
-    supabase_url = os.environ["SUPABASE_URL"]          # e.g. https://abcdef.supabase.co
-    service_key  = os.environ["SUPABASE_SERVICE_KEY"]  # service role key (not anon key)
+    supabase_url = os.environ["SUPABASE_URL"]              # e.g. https://abcdef.supabase.co
+    db_password  = os.environ["SUPABASE_DB_PASSWORD"]      # actual Postgres password, not the service key
+    pooler_host  = os.environ.get("SUPABASE_POOLER_HOST", "aws-0-ap-south-1.pooler.supabase.com")
 
     # Extract project ref from URL: https://<ref>.supabase.co
     project_ref = supabase_url.replace("https://", "").split(".")[0]
-    host = f"db.{project_ref}.supabase.co"
 
     conn = psycopg2.connect(
-        host=host,
+        host=pooler_host,
         port=5432,
         dbname="postgres",
-        user="postgres",
-        password=service_key,
+        user=f"postgres.{project_ref}",
+        password=db_password,
         sslmode="require",
     )
     return conn
