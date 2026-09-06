@@ -1,20 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  api,
-  ChunkRow,
-  ChunkStats,
-  STRATEGIES,
-  STRATEGY_META,
-  Strategy,
-} from "@/lib/api";
-import { Card, EmptyState, ErrorNote, Spinner } from "./ui";
+import { api, ChunkRow, ChunkStats, STRATEGIES, STRATEGY_META, Strategy } from "@/lib/api";
+import { EmptyState, ErrorNote, Rule, SectionHead, Sheet, Spinner, Stat } from "./ui";
 
 /**
- * Token counts drawn in document order. Reading left to right is reading
- * through the document, which makes the character of each strategy visible:
- * fixed is a flat line, semantic is jagged wherever the topic turns.
+ * Token counts drawn in document order — reading left to right is reading
+ * through the document. This is where each strategy's character shows: fixed is
+ * a flat line by construction, semantic is jagged wherever the topic turns.
  */
 function SizeProfile({
   counts,
@@ -27,12 +20,17 @@ function SizeProfile({
 }) {
   if (counts.length === 0) return null;
   return (
-    <div className="flex h-16 items-end gap-px" aria-hidden>
+    <div className="flex h-20 items-end gap-[2px]" aria-hidden>
       {counts.map((count, i) => (
         <div
           key={i}
-          className={`flex-1 rounded-sm ${accent} opacity-80`}
-          style={{ height: `${Math.max(4, (count / max) * 100)}%` }}
+          className="animate-span flex-1 rounded-[1px]"
+          style={{
+            height: `${Math.max(3, (count / max) * 100)}%`,
+            background: accent,
+            opacity: 0.85,
+            animationDelay: `${i * 12}ms`,
+          }}
           title={`${count} tokens`}
         />
       ))}
@@ -65,8 +63,8 @@ export function ChunksPanel({ indexed }: { indexed: boolean }) {
   if (!indexed) {
     return (
       <EmptyState
-        title="No document indexed"
-        hint="Open the Index tab and load a PDF to explore its chunks."
+        title="Nothing is indexed yet."
+        hint="Open the Index tab and load a document to explore its chunks."
       />
     );
   }
@@ -76,107 +74,132 @@ export function ChunksPanel({ indexed }: { indexed: boolean }) {
     : 1;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
+      <section>
+        <SectionHead aside="bar height = token count · left to right = document order">
+          The shape of each strategy
+        </SectionHead>
+
+        <div className="grid gap-px bg-rule lg:grid-cols-3">
+          {STRATEGIES.map((s, col) => {
+            const meta = STRATEGY_META[s];
+            const summary = stats?.summary[s];
+            return (
+              <div
+                key={s}
+                className="animate-rise bg-paper p-5"
+                style={{ animationDelay: `${col * 70}ms` }}
+              >
+                <div className="flex items-baseline justify-between">
+                  <h3
+                    className="font-display text-xl tracking-tight"
+                    style={{ color: meta.accent }}
+                  >
+                    {meta.label}
+                  </h3>
+                  <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-ink-faint">
+                    {meta.rule}
+                  </span>
+                </div>
+                <div className="mt-2 h-0.5 animate-rule" style={{ background: meta.accent }} />
+
+                {summary ? (
+                  <>
+                    <div className="mt-4 flex items-end justify-between">
+                      <Stat
+                        label="chunks"
+                        value={summary.chunks}
+                        accent={meta.accent}
+                      />
+                      <div className="flex gap-5 text-right">
+                        <Stat label="avg" value={summary.avg_tokens} />
+                        <Stat label="range" value={`${summary.min_tokens}–${summary.max_tokens}`} />
+                      </div>
+                    </div>
+
+                    <div className="mt-5">
+                      <SizeProfile
+                        counts={stats!.token_counts[s] ?? []}
+                        accent={meta.accent}
+                        max={globalMax}
+                      />
+                      <Rule className="mt-1" animate={false} />
+                    </div>
+
+                    <p className="mt-3 text-[12px] leading-relaxed text-ink-muted">
+                      {meta.blurb}
+                    </p>
+                  </>
+                ) : (
+                  <div className="flex h-40 items-center">
+                    <Spinner className="text-ink-faint" />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
       {error ? <ErrorNote message={error} /> : null}
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        {STRATEGIES.map((s) => {
-          const meta = STRATEGY_META[s];
-          const summary = stats?.summary[s];
-          return (
-            <Card key={s} className="p-4">
-              <div className="mb-3 flex items-center gap-2">
-                <span className={`h-2.5 w-2.5 rounded-full ${meta.dot}`} />
-                <h3 className="text-sm font-semibold">{meta.label}</h3>
-              </div>
-              {summary ? (
-                <>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-semibold tabular-nums">
-                      {summary.chunks}
-                    </span>
-                    <span className="text-xs text-slate-500">chunks</span>
-                  </div>
-                  <dl className="mt-3 grid grid-cols-3 gap-2 text-center">
-                    {[
-                      ["avg", summary.avg_tokens],
-                      ["min", summary.min_tokens],
-                      ["max", summary.max_tokens],
-                    ].map(([label, value]) => (
-                      <div
-                        key={label}
-                        className="rounded-md bg-slate-50 py-1.5 dark:bg-slate-800/60"
-                      >
-                        <dt className="text-[10px] uppercase tracking-wide text-slate-400">
-                          {label}
-                        </dt>
-                        <dd className="font-mono text-xs font-semibold tabular-nums">
-                          {value}
-                        </dd>
-                      </div>
-                    ))}
-                  </dl>
-                  <div className="mt-4">
-                    <p className="mb-1 text-[10px] uppercase tracking-wide text-slate-400">
-                      Size profile, in document order
-                    </p>
-                    <SizeProfile
-                      counts={stats!.token_counts[s] ?? []}
-                      accent={meta.accent}
-                      max={globalMax}
-                    />
-                  </div>
-                </>
-              ) : (
-                <Spinner className="text-slate-400" />
-              )}
-            </Card>
-          );
-        })}
-      </div>
+      <section>
+        <SectionHead
+          aside={loading ? "loading…" : `${chunks.length} chunks`}
+        >
+          Browse the text
+        </SectionHead>
 
-      <Card className="overflow-hidden">
-        <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 px-4 py-3 dark:border-slate-800">
-          <span className="text-xs font-medium text-slate-500">Browse chunks</span>
-          <div className="flex gap-1">
-            {STRATEGIES.map((s) => (
-              <button
-                key={s}
-                onClick={() => setStrategy(s)}
-                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-                  strategy === s
-                    ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                    : "text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
-                }`}
-              >
-                {STRATEGY_META[s].label}
-              </button>
-            ))}
-          </div>
-          <span className="ml-auto text-xs text-slate-400">
-            {loading ? "loading…" : `${chunks.length} shown`}
-          </span>
-        </div>
-
-        <div className="thin-scroll max-h-[34rem] divide-y divide-slate-100 overflow-y-auto dark:divide-slate-800">
-          {chunks.map((chunk) => (
-            <div key={chunk.chunk_id} className="px-4 py-3">
-              <div className="mb-1.5 flex flex-wrap items-center gap-2">
-                <span className="font-mono text-[11px] font-medium">{chunk.chunk_id}</span>
-                <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-500 dark:bg-slate-800">
-                  {chunk.token_count} tok
-                </span>
-                <span className="font-mono text-[10px] text-slate-400">
-                  page {chunk.source_page} · {chunk.char_start}–{chunk.char_end}
-                </span>
-              </div>
-              <p className="line-clamp-3 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
-                {chunk.content}
-              </p>
-            </div>
+        <div className="mb-4 flex gap-6">
+          {STRATEGIES.map((s) => (
+            <button
+              key={s}
+              onClick={() => setStrategy(s)}
+              className={`pb-1 font-display text-lg tracking-tight transition-all active:scale-95 ${
+                strategy === s ? "" : "text-ink-faint hover:text-ink-muted"
+              }`}
+              style={
+                strategy === s
+                  ? {
+                      color: STRATEGY_META[s].accent,
+                      boxShadow: `inset 0 -2px 0 0 ${STRATEGY_META[s].accent}`,
+                    }
+                  : undefined
+              }
+            >
+              {STRATEGY_META[s].label}
+            </button>
           ))}
         </div>
-      </Card>
+
+        <Sheet>
+          <div className="thin-scroll max-h-[34rem] overflow-y-auto">
+            {chunks.map((chunk, i) => (
+              <article
+                key={chunk.chunk_id}
+                className="group border-b border-rule px-5 py-4 transition-colors last:border-b-0 hover:bg-sunk/50"
+              >
+                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                  <span
+                    className="font-display text-lg leading-none"
+                    style={{ color: STRATEGY_META[strategy].accent }}
+                  >
+                    {i + 1}
+                  </span>
+                  <span className="font-mono text-[11px] font-medium">{chunk.chunk_id}</span>
+                  <span className="font-mono text-[11px] text-ink-faint tnum">
+                    {chunk.token_count} tok · page {chunk.source_page} ·{" "}
+                    {chunk.char_start.toLocaleString()}–{chunk.char_end.toLocaleString()}
+                  </span>
+                </div>
+                <p className="mt-1.5 line-clamp-3 text-[13px] leading-relaxed text-ink-muted">
+                  {chunk.content}
+                </p>
+              </article>
+            ))}
+          </div>
+        </Sheet>
+      </section>
     </div>
   );
 }

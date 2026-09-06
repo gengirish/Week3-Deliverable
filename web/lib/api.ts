@@ -7,34 +7,35 @@ export const API_BASE =
 export const STRATEGIES = ["fixed", "structural", "semantic"] as const;
 export type Strategy = (typeof STRATEGIES)[number];
 
-/** Per-strategy identity: colour, label and the one-line explanation. */
+/**
+ * Per-strategy identity. `accent` is a CSS custom property rather than a
+ * Tailwind class so the same value can drive text, SVG fills and inline styles
+ * in the ribbon without three parallel definitions drifting apart.
+ */
 export const STRATEGY_META: Record<
   Strategy,
-  { label: string; blurb: string; accent: string; dot: string; ring: string; text: string }
+  { label: string; rule: string; blurb: string; accent: string }
 > = {
   fixed: {
     label: "Fixed",
-    blurb: "500-token sliding window, 50-token overlap. Ignores content entirely.",
-    accent: "bg-amber-500",
-    dot: "bg-amber-500",
-    ring: "ring-amber-500/30",
-    text: "text-amber-600 dark:text-amber-400",
+    rule: "500 tokens · 50 overlap",
+    blurb:
+      "A sliding window that ignores content entirely. Fast, deterministic, and a stronger baseline than its reputation suggests.",
+    accent: "var(--color-fixed)",
   },
   structural: {
     label: "Structural",
-    blurb: "Recursive paragraph then sentence split, 400-token target.",
-    accent: "bg-sky-500",
-    dot: "bg-sky-500",
-    ring: "ring-sky-500/30",
-    text: "text-sky-600 dark:text-sky-400",
+    rule: "400-token target",
+    blurb:
+      "Recursive split on paragraphs, then sentences. Fixed-size predictability without cutting mid-sentence.",
+    accent: "var(--color-structural)",
   },
   semantic: {
     label: "Semantic",
-    blurb: "Sentence windows cut where embedding similarity drops (adaptive p25).",
-    accent: "bg-violet-500",
-    dot: "bg-violet-500",
-    ring: "ring-violet-500/30",
-    text: "text-violet-600 dark:text-violet-400",
+    rule: "window 3 · adaptive p25",
+    blurb:
+      "Sentence windows cut where embedding similarity drops. The threshold is derived from this corpus, not borrowed.",
+    accent: "var(--color-semantic)",
   },
 };
 

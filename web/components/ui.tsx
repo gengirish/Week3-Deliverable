@@ -2,40 +2,94 @@
 
 import { ReactNode } from "react";
 
-export function Card({
+/**
+ * Editorial primitives.
+ *
+ * Structure comes from hairline rules and paper steps, not from a border on
+ * every container. `Sheet` is the only raised surface; most grouping is done
+ * with `Rule` + `SectionHead`, which is what keeps the page reading as a
+ * document rather than a grid of cards.
+ */
+
+export function Sheet({
   children,
   className = "",
+  raised = true,
 }: {
   children: ReactNode;
   className?: string;
+  raised?: boolean;
 }) {
   return (
     <div
-      className={`rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900 ${className}`}
+      className={`rounded-sm border border-rule ${
+        raised ? "bg-surface shadow-[0_1px_2px_rgba(60,45,25,0.05),0_6px_18px_-12px_rgba(60,45,25,0.28)]" : "bg-transparent"
+      } ${className}`}
     >
       {children}
     </div>
   );
 }
 
-export function Badge({
+/** A section rule that draws itself in on mount. */
+export function Rule({
+  weight = "hair",
+  className = "",
+  animate = true,
+}: {
+  weight?: "hair" | "strong" | "heavy";
+  className?: string;
+  animate?: boolean;
+}) {
+  const weights = {
+    hair: "h-px bg-rule",
+    strong: "h-px bg-rule-strong",
+    heavy: "h-0.5 bg-ink",
+  } as const;
+  return (
+    <div
+      className={`${weights[weight]} ${animate ? "animate-rule" : ""} ${className}`}
+      aria-hidden
+    />
+  );
+}
+
+export function SectionHead({
   children,
-  tone = "slate",
+  aside,
 }: {
   children: ReactNode;
-  tone?: "slate" | "green" | "red" | "amber" | "sky" | "violet";
+  aside?: ReactNode;
+}) {
+  return (
+    <div className="mb-3">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="font-display text-[13px] font-medium uppercase tracking-[0.18em] text-ink-muted">
+          {children}
+        </h2>
+        {aside ? <div className="text-[12px] text-ink-faint">{aside}</div> : null}
+      </div>
+      <Rule className="mt-2" weight="strong" />
+    </div>
+  );
+}
+
+export function Badge({
+  children,
+  tone = "neutral",
+}: {
+  children: ReactNode;
+  tone?: "neutral" | "gold" | "miss" | "warn";
 }) {
   const tones = {
-    slate: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
-    green: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400",
-    red: "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-400",
-    amber: "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400",
-    sky: "bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-400",
-    violet: "bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-400",
+    neutral: "border-rule-strong text-ink-muted",
+    gold: "border-gold/45 text-gold bg-gold/8",
+    miss: "border-miss/45 text-miss bg-miss/8",
+    warn: "border-fixed/45 text-fixed bg-fixed/8",
   } as const;
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${tones[tone]}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-medium tracking-tight ${tones[tone]}`}
     >
       {children}
     </span>
@@ -54,26 +108,28 @@ export function Button({
   children: ReactNode;
   onClick?: () => void;
   disabled?: boolean;
-  variant?: "primary" | "ghost" | "outline";
+  variant?: "primary" | "outline" | "quiet";
   size?: "sm" | "md";
   type?: "button" | "submit";
   className?: string;
 }) {
   const variants = {
     primary:
-      "bg-slate-900 text-white hover:bg-slate-700 disabled:bg-slate-300 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white dark:disabled:bg-slate-700 dark:disabled:text-slate-500",
+      "bg-ink text-paper hover:bg-ink-muted disabled:bg-rule-strong disabled:text-surface",
     outline:
-      "border border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-40 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800",
-    ghost:
-      "text-slate-600 hover:bg-slate-100 disabled:opacity-40 dark:text-slate-300 dark:hover:bg-slate-800",
+      "border border-rule-strong text-ink hover:border-ink hover:bg-sunk disabled:opacity-40",
+    quiet: "text-ink-muted hover:text-ink hover:bg-sunk disabled:opacity-40",
   } as const;
-  const sizes = { sm: "px-2.5 py-1 text-xs", md: "px-4 py-2 text-sm" } as const;
+  const sizes = {
+    sm: "px-3 py-1.5 text-[12px]",
+    md: "px-4 py-2 text-[13px]",
+  } as const;
   return (
     <button
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors disabled:cursor-not-allowed ${variants[variant]} ${sizes[size]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-sm font-medium tracking-tight transition-all duration-150 active:scale-95 disabled:cursor-not-allowed disabled:active:scale-100 ${variants[variant]} ${sizes[size]} ${className}`}
     >
       {children}
     </button>
@@ -82,31 +138,41 @@ export function Button({
 
 export function Spinner({ className = "" }: { className?: string }) {
   return (
-    <svg className={`h-4 w-4 animate-spin ${className}`} viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" opacity="0.25" />
-      <path
-        d="M12 2a10 10 0 0 1 10 10"
-        stroke="currentColor"
-        strokeWidth="3"
-        strokeLinecap="round"
-      />
+    <svg className={`h-3.5 w-3.5 animate-spin ${className}`} viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2.5" opacity="0.25" />
+      <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
     </svg>
   );
 }
 
-export function ErrorNote({ message }: { message: string }) {
+export function Note({
+  children,
+  tone = "neutral",
+}: {
+  children: ReactNode;
+  tone?: "neutral" | "warn" | "error";
+}) {
+  const tones = {
+    neutral: "border-l-rule-strong text-ink-muted",
+    warn: "border-l-fixed text-ink",
+    error: "border-l-miss text-ink",
+  } as const;
   return (
-    <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-300">
-      {message}
+    <div className={`border-l-2 bg-sunk/60 py-3 pl-4 pr-4 text-[13px] leading-relaxed ${tones[tone]}`}>
+      {children}
     </div>
   );
 }
 
+export function ErrorNote({ message }: { message: string }) {
+  return <Note tone="error">{message}</Note>;
+}
+
 export function ProgressBar({ pct }: { pct: number }) {
   return (
-    <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+    <div className="h-px w-full bg-rule">
       <div
-        className="h-full rounded-full bg-slate-900 transition-all duration-300 dark:bg-slate-100"
+        className="h-px bg-ink transition-all duration-500 ease-out"
         style={{ width: `${Math.max(2, Math.min(100, pct))}%` }}
       />
     </div>
@@ -115,9 +181,37 @@ export function ProgressBar({ pct }: { pct: number }) {
 
 export function EmptyState({ title, hint }: { title: string; hint?: ReactNode }) {
   return (
-    <div className="rounded-xl border border-dashed border-slate-300 px-6 py-12 text-center dark:border-slate-700">
-      <p className="text-sm font-medium text-slate-600 dark:text-slate-300">{title}</p>
-      {hint ? <p className="mt-1 text-xs text-slate-500">{hint}</p> : null}
+    <div className="py-20 text-center">
+      <p className="font-display text-2xl italic text-ink-muted">{title}</p>
+      {hint ? <p className="mt-2 text-[13px] text-ink-faint">{hint}</p> : null}
+    </div>
+  );
+}
+
+/** A labelled statistic. Display serif for the number, small caps for the label. */
+export function Stat({
+  label,
+  value,
+  sub,
+  accent,
+}: {
+  label: string;
+  value: ReactNode;
+  sub?: ReactNode;
+  accent?: string;
+}) {
+  return (
+    <div>
+      <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-ink-faint">
+        {label}
+      </p>
+      <p
+        className="font-display text-3xl leading-none tnum"
+        style={accent ? { color: accent } : undefined}
+      >
+        {value}
+      </p>
+      {sub ? <p className="mt-1 text-[11px] text-ink-faint tnum">{sub}</p> : null}
     </div>
   );
 }

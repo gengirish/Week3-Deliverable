@@ -2,17 +2,17 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { api, Status } from "@/lib/api";
-import { Badge, Card, ErrorNote, Spinner } from "@/components/ui";
+import { ErrorNote, Rule, Spinner } from "@/components/ui";
 import { SearchPanel } from "@/components/SearchPanel";
 import { ChunksPanel } from "@/components/ChunksPanel";
 import { EvalPanel } from "@/components/EvalPanel";
 import { IndexPanel } from "@/components/IndexPanel";
 
 const TABS = [
-  { id: "search", label: "Compare search" },
-  { id: "chunks", label: "Chunk explorer" },
-  { id: "eval", label: "Benchmark" },
-  { id: "index", label: "Index" },
+  { id: "search", label: "Compare", note: "one question, three cuts" },
+  { id: "chunks", label: "Chunks", note: "what each strategy produced" },
+  { id: "eval", label: "Benchmark", note: "ten labelled questions" },
+  { id: "index", label: "Index", note: "load a document" },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -51,28 +51,34 @@ export default function Home() {
 
   const indexed = Boolean(status?.document.indexed) && !status?.document.stale;
   const isReference = Boolean(status?.document.is_reference_document);
+  const docChars = status?.document.characters ?? 0;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <header className="mb-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
+    <div className="mx-auto min-h-full max-w-[84rem] px-5 pb-24 sm:px-8">
+      {/* Masthead — the thesis is the title, not the product name */}
+      <header className="pt-10">
+        <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
           <div>
-            <h1 className="text-xl font-semibold tracking-tight">RAG Chunking Lab</h1>
-            <p className="mt-1 max-w-2xl text-sm text-slate-500">
-              One document, one embedding model, three chunking strategies —
-              indexed side by side in Supabase pgvector so you can see what the
-              boundary choice actually changes.
+            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-faint">
+              Retrieval engineering · Chunking Lab
             </p>
+            <h1 className="mt-2 max-w-xl font-display text-[40px] font-normal leading-[1.05] tracking-tight sm:text-[52px]">
+              Where you cut changes
+              <br />
+              <em className="text-ink-muted">what you find.</em>
+            </h1>
           </div>
 
-          <div className="flex flex-col items-end gap-2">
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-500">Embeddings</span>
+          <div className="flex flex-col items-start gap-2 sm:items-end">
+            <label className="flex items-center gap-2">
+              <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-faint">
+                Embeddings
+              </span>
               <select
                 value={status?.provider.provider ?? "local"}
                 disabled={switching || !status}
                 onChange={(e) => void changeProvider(e.target.value)}
-                className="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900"
+                className="rounded-sm border border-rule-strong bg-surface px-2.5 py-1.5 text-[12px] disabled:opacity-50"
               >
                 {status?.providers.map((p) => (
                   <option key={p.id} value={p.id} disabled={!p.available}>
@@ -80,73 +86,105 @@ export default function Home() {
                   </option>
                 ))}
               </select>
-              {switching ? <Spinner className="text-slate-400" /> : null}
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Badge tone={status?.database.connected ? "green" : "red"}>
-                {status?.database.connected
-                  ? `pgvector · ${status.database.total} rows`
-                  : "database unreachable"}
-              </Badge>
+              {switching ? <Spinner className="text-ink-faint" /> : null}
+            </label>
+
+            <p className="font-mono text-[11px] text-ink-faint tnum">
+              <span className={status?.database.connected ? "text-gold" : "text-miss"}>
+                ●
+              </span>{" "}
+              {status?.database.connected
+                ? `pgvector · ${status.database.total} rows`
+                : "database unreachable"}
               {status?.document.indexed ? (
-                <Badge tone={status.document.stale ? "amber" : "slate"}>
-                  {status.document.stale ? "index stale" : status.document.name}
-                </Badge>
+                <>
+                  {" · "}
+                  {status.document.stale ? (
+                    <span className="text-fixed">index stale</span>
+                  ) : (
+                    <span className="text-ink-muted">
+                      {status.document.pages}pp indexed
+                    </span>
+                  )}
+                </>
               ) : (
-                <Badge tone="amber">no document</Badge>
+                <span className="text-fixed"> · no document</span>
               )}
-            </div>
+            </p>
           </div>
         </div>
+
+        <Rule weight="heavy" className="mt-8" />
       </header>
 
       {error ? (
-        <div className="mb-6">
+        <div className="mt-6">
           <ErrorNote message={error} />
         </div>
       ) : null}
 
       {status?.database.error ? (
-        <div className="mb-6">
+        <div className="mt-6">
           <ErrorNote message={`Database: ${status.database.error}`} />
         </div>
       ) : null}
 
-      <nav className="mb-6 flex gap-1 border-b border-slate-200 dark:border-slate-800">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            className={`-mb-px border-b-2 px-3.5 py-2.5 text-sm font-medium transition-colors ${
-              tab === t.id
-                ? "border-slate-900 text-slate-900 dark:border-slate-100 dark:text-slate-100"
-                : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
+      <nav className="mb-10 flex flex-wrap gap-x-8 gap-y-2 pt-4">
+        {TABS.map((t) => {
+          const active = tab === t.id;
+          return (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className="group py-1 text-left transition-all active:scale-95"
+            >
+              <span
+                className={`block font-display text-xl tracking-tight transition-colors ${
+                  active ? "text-ink" : "text-ink-faint group-hover:text-ink-muted"
+                }`}
+              >
+                {t.label}
+              </span>
+              <span
+                className={`mt-0.5 block text-[11px] transition-colors ${
+                  active ? "text-ink-muted" : "text-ink-faint/70"
+                }`}
+              >
+                {t.note}
+              </span>
+              <span
+                className={`mt-1.5 block h-0.5 origin-left transition-transform duration-300 ${
+                  active ? "scale-x-100 bg-ink" : "scale-x-0 bg-rule-strong"
+                }`}
+              />
+            </button>
+          );
+        })}
       </nav>
 
       {!status ? (
-        <Card className="flex items-center gap-3 p-6 text-sm text-slate-500">
+        <div className="flex items-center gap-3 py-20 text-[13px] text-ink-muted">
           <Spinner /> Connecting to the API…
-        </Card>
+        </div>
       ) : (
         <main>
-          {tab === "search" ? <SearchPanel indexed={indexed} /> : null}
+          {tab === "search" ? (
+            <SearchPanel indexed={indexed} docChars={docChars} />
+          ) : null}
           {tab === "chunks" ? <ChunksPanel indexed={indexed} /> : null}
           {tab === "eval" ? (
-            <EvalPanel indexed={indexed} isReference={isReference} />
+            <EvalPanel indexed={indexed} isReference={isReference} docChars={docChars} />
           ) : null}
           {tab === "index" ? <IndexPanel status={status} onDone={refresh} /> : null}
         </main>
       )}
 
-      <footer className="mt-12 border-t border-slate-200 pt-4 text-xs text-slate-400 dark:border-slate-800">
-        FastAPI + Next.js over the rag_pipeline modules · pgvector HNSW (m=16,
-        ef_construction=64) · retrieval logic is shared with the CLI, so the UI
-        and <code className="font-mono">python main.py</code> always agree.
+      <footer className="mt-20">
+        <Rule weight="strong" />
+        <p className="pt-4 font-mono text-[10px] uppercase leading-relaxed tracking-[0.12em] text-ink-faint">
+          FastAPI + Next.js over rag_pipeline · pgvector HNSW m=16 ef_construction=64 ·
+          retrieval logic shared with the CLI
+        </p>
       </footer>
     </div>
   );
