@@ -46,15 +46,8 @@ load_dotenv()
 # ---------------------------------------------------------------------------
 
 def get_db_connection():
-    import psycopg2
-    supabase_url = os.environ["SUPABASE_URL"]
-    service_key  = os.environ["SUPABASE_SERVICE_KEY"]
-    project_ref  = supabase_url.replace("https://", "").split(".")[0]
-    host         = f"db.{project_ref}.supabase.co"
-    return psycopg2.connect(
-        host=host, port=5432, dbname="postgres",
-        user="postgres", password=service_key, sslmode="require",
-    )
+    from db import get_connection
+    return get_connection()
 
 
 # ---------------------------------------------------------------------------
@@ -150,15 +143,10 @@ def phase_query():
     print("PHASE 5 & 6: Queries + Evaluation")
     print("=" * 60)
 
-    # Check placeholders haven't been left in
-    from query import QUERIES, GOLD_LABELS
-    placeholder_queries = [q for q in QUERIES.values() if q["text"].startswith("REPLACE:")]
-    if placeholder_queries:
-        print(
-            f"\nWARNING: {len(placeholder_queries)} queries still have placeholder text.\n"
-            "Open query.py and replace QUERIES and GOLD_LABELS with your document-specific values.\n"
-            "Proceeding anyway — results will not be meaningful until placeholders are replaced.\n"
-        )
+    # Gold anchors must resolve against the ingested document before we query.
+    # resolve_gold_spans() raises with the offending anchor if one does not.
+    from query import QUERIES, GOLD_ANCHORS
+    print(f"  {len(QUERIES)} queries, {len(GOLD_ANCHORS)} gold anchors")
 
     from query import (
         run_queries, score_results,

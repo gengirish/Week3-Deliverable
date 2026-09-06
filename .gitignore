@@ -1,6 +1,21 @@
-.env
+# Python
 __pycache__/
 *.pyc
 *.pyo
 .venv/
 venv/
+
+# Secrets
+.env
+.env.local
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+next-env.d.ts
+
+# Uploaded and generated artefacts
+rag_pipeline/data/uploads/
+rag_pipeline/results/active_document.json
+rag_pipeline/results/eval_run.json

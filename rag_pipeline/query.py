@@ -13,51 +13,94 @@ Query types (per the plan):
     Q7-Q9  : Cross-section synthesis
     Q10    : Adversarial / boundary
 
-IMPORTANT: Before running, fill in QUERIES below with document-specific questions
-and fill in GOLD_LABELS with the chunk_ids that best answer each query.
-Both are placeholders until you review your actual PDF.
+QUERIES and GOLD_ANCHORS below are written against the ingested document. If you
+swap in a different PDF, both must be rewritten: the anchors are verbatim phrases
+from the cleaned text and resolve_gold_spans() raises if one is not found.
 """
 
 import json
 import os
+import re
 import psycopg2
 import psycopg2.extras
 from embeddings import embed_query
 
 
 # ---------------------------------------------------------------------------
-# EDIT THESE before running Phase 5
-# Replace placeholder text with questions drawn from your actual PDF.
+# Query set — drawn from the ingested document
+# (IntelliForge IF-RES-2026-122, "Choosing a Chunking Strategy", 16pp)
 # ---------------------------------------------------------------------------
 
 QUERIES: dict[str, dict] = {
-    "Q1":  {"type": "Fact lookup",    "text": "REPLACE: What is the exact value of [key statistic in the document]?"},
-    "Q2":  {"type": "Fact lookup",    "text": "REPLACE: Who is [named entity] and what is their role?"},
-    "Q3":  {"type": "Fact lookup",    "text": "REPLACE: What does [defined term] mean according to the document?"},
-    "Q4":  {"type": "Multi-sentence", "text": "REPLACE: Explain the relationship between [concept A] and [concept B]."},
-    "Q5":  {"type": "Multi-sentence", "text": "REPLACE: What evidence supports [claim made mid-paragraph]?"},
-    "Q6":  {"type": "Multi-sentence", "text": "REPLACE: What are the steps in [process described over a paragraph]?"},
-    "Q7":  {"type": "Cross-section",  "text": "REPLACE: How does [topic in early section] connect to [topic in later section]?"},
-    "Q8":  {"type": "Cross-section",  "text": "REPLACE: What are all the limitations mentioned throughout the document?"},
-    "Q9":  {"type": "Cross-section",  "text": "REPLACE: Compare the approach described in [early section] to [later section]."},
-    "Q10": {"type": "Boundary",       "text": "REPLACE: What is discussed immediately after [mid-page concept]?"},
+    "Q1":  {"type": "Fact lookup",    "text": "What percentage of overlap should I use between chunks?"},
+    "Q2":  {"type": "Fact lookup",    "text": "Who wrote this document and what is their job title?"},
+    "Q3":  {"type": "Fact lookup",    "text": "What does late chunking mean?"},
+    "Q4":  {"type": "Multi-sentence", "text": "Why should overlap be set to zero when using structure-aware boundaries?"},
+    "Q5":  {"type": "Multi-sentence", "text": "What evidence shows that adding document context reduces retrieval failures?"},
+    "Q6":  {"type": "Multi-sentence", "text": "What are the five questions in the decision path, and in what order?"},
+    "Q7":  {"type": "Cross-section",  "text": "What goes wrong when a chunk refers to something defined in an earlier chunk?"},
+    "Q8":  {"type": "Cross-section",  "text": "What are the anti-patterns that quietly destroy retrieval recall?"},
+    "Q9":  {"type": "Cross-section",  "text": "How should legal contracts be chunked compared to source code repositories?"},
+    "Q10": {"type": "Boundary",       "text": "After building the golden set, what is the next step in the eval loop?"},
 }
 
-# Pre-label gold chunks BEFORE running queries.
-# For each query, identify the single chunk_id that best answers it by reading the PDF.
-# Cross-reference structural/semantic by char_start/char_end overlap (>80% overlap = same region).
-GOLD_LABELS: dict[str, str] = {
-    "Q1":  "fixed_000",   # REPLACE with real chunk_id
-    "Q2":  "fixed_000",
-    "Q3":  "fixed_000",
-    "Q4":  "fixed_000",
-    "Q5":  "fixed_000",
-    "Q6":  "fixed_000",
-    "Q7":  "fixed_000",
-    "Q8":  "fixed_000",
-    "Q9":  "fixed_000",
-    "Q10": "fixed_000",
+# Gold labels are answer SPANS, not chunk ids.
+#
+# A single gold chunk_id cannot be fair here: the three strategies cut the
+# document at different offsets, so any chunk_id belongs to exactly one of them
+# and the other two can only ever match by approximate overlap. Instead each
+# query is labelled with a verbatim phrase from the document that answers it —
+# the "label the true source span" step the document itself prescribes. A
+# retrieval counts as a hit when a returned chunk actually contains that span,
+# which is the same question asked identically of every strategy.
+#
+# Format: query_id -> (anchor phrase, which occurrence to use if repeated)
+# Whitespace in the anchor is matched flexibly, since PDF extraction inserts
+# line breaks mid-sentence.
+
+GOLD_ANCHORS: dict[str, tuple[str, int]] = {
+    "Q1":  ("10-15% is the working range", 0),
+    "Q2":  ("Founder & Principal Engineer", 0),
+    "Q3":  ("late chunking - encoding the whole document first and pooling per-chunk vectors afterwards", 0),
+    "Q4":  ("If you have adopted structure-aware boundaries, set overlap to zero", 0),
+    "Q5":  ("cut top-20 retrieval failures by 35% on its own, 49% with contextual BM25", 0),
+    "Q6":  ("Structure \u2192 answer shape \u2192 chunk independence \u2192 budget and churn \u2192 citation and access control", 0),
+    "Q7":  ("Orphan references", 1),
+    "Q8":  ("Eight anti-patterns that quietly destroy recall", 1),
+    "Q9":  ("Clauses are the legal unit of meaning", 0),
+    "Q10": ("Measure five things", 0),
 }
+
+# Fraction of the gold span a chunk must contain to count as a hit.
+SPAN_COVERAGE = 0.80
+
+
+def resolve_gold_spans(pdf_path: str | None = None) -> dict[str, tuple[int, int]]:
+    """
+    Locate each gold anchor in the cleaned full-document text and return its
+    (char_start, char_end). These offsets are in the same coordinate space the
+    chunkers used, so they can be compared against chunk char ranges directly.
+    """
+    from ingest import extract_full_text
+
+    pdf_path = pdf_path or os.environ.get("PDF_PATH", "./data/document.pdf")
+    full_text, _ = extract_full_text(pdf_path)
+
+    spans: dict[str, tuple[int, int]] = {}
+    for q_id, (anchor, occurrence) in GOLD_ANCHORS.items():
+        # Match flexibly across the line breaks PDF extraction leaves behind
+        pattern = re.compile(r"\s+".join(re.escape(w) for w in anchor.split()), re.I)
+        matches = list(pattern.finditer(full_text))
+        if not matches:
+            raise ValueError(
+                f"{q_id}: gold anchor not found in document: {anchor[:60]!r}. "
+                "The anchor must be a verbatim phrase from the cleaned text."
+            )
+        m = matches[min(occurrence, len(matches) - 1)]
+        spans[q_id] = (m.start(), m.end())
+
+    return spans
+
 
 STRATEGIES = ["fixed", "structural", "semantic"]
 TOP_K = 3
@@ -100,46 +143,25 @@ def search(
 
 
 # ---------------------------------------------------------------------------
-# Gold chunk matching (by chunk_id or char overlap)
+# Gold matching — does a retrieved chunk actually contain the answer span?
 # ---------------------------------------------------------------------------
 
-def _overlaps_gold(result_chunk: dict, gold_chunk_id: str, all_chunks_index: dict) -> bool:
+def _contains_gold(result_chunk: dict, gold_span: tuple[int, int]) -> bool:
     """
-    Returns True if result_chunk matches the gold chunk either:
-    - Exactly by chunk_id, OR
-    - By >80% character overlap with the gold chunk's char_start/char_end range
-      (handles cross-strategy gold label matching)
-    """
-    if result_chunk["chunk_id"] == gold_chunk_id:
-        return True
+    True when the chunk covers at least SPAN_COVERAGE of the gold answer span.
 
-    gold = all_chunks_index.get(gold_chunk_id)
-    if gold is None:
+    Partial credit matters: a chunk holding 90% of the answer is a useful
+    retrieval, while one clipping the final three words is not meaningfully
+    worse than one holding all of it. Requiring full containment would penalise
+    boundary placement rather than measure retrieval.
+    """
+    g_start, g_end = gold_span
+    gold_len = g_end - g_start
+    if gold_len <= 0:
         return False
 
-    # Compute character overlap ratio
-    r_start = result_chunk["char_start"]
-    r_end   = result_chunk["char_end"]
-    g_start = gold["char_start"]
-    g_end   = gold["char_end"]
-
-    overlap_start = max(r_start, g_start)
-    overlap_end   = min(r_end,   g_end)
-    if overlap_end <= overlap_start:
-        return False
-
-    overlap_len = overlap_end - overlap_start
-    gold_len    = g_end - g_start
-    return (overlap_len / gold_len) >= 0.80 if gold_len > 0 else False
-
-
-def _build_chunks_index(conn) -> dict[str, dict]:
-    """Load all chunk metadata (no embeddings) into a dict keyed by chunk_id."""
-    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    cur.execute("SELECT chunk_id, char_start, char_end FROM document_chunks;")
-    rows = cur.fetchall()
-    cur.close()
-    return {r["chunk_id"]: dict(r) for r in rows}
+    overlap = min(result_chunk["char_end"], g_end) - max(result_chunk["char_start"], g_start)
+    return overlap > 0 and (overlap / gold_len) >= SPAN_COVERAGE
 
 
 # ---------------------------------------------------------------------------
@@ -151,7 +173,7 @@ def run_queries(conn) -> list[dict]:
     Execute all 10 queries × 3 strategies = 30 searches.
     Returns raw results list suitable for scoring and Stage 3 consumption.
     """
-    chunks_index = _build_chunks_index(conn)
+    gold_spans = resolve_gold_spans()
     results = []
 
     print(f"\n[query] Running {len(QUERIES)} queries × {len(STRATEGIES)} strategies...")
@@ -166,17 +188,25 @@ def run_queries(conn) -> list[dict]:
         for strategy in STRATEGIES:
             hits = search(conn, query_vector, strategy, top_k=TOP_K)
 
-            gold_id   = GOLD_LABELS.get(q_id, "")
-            hit_at_3  = int(any(_overlaps_gold(h, gold_id, chunks_index) for h in hits))
+            gold_span = gold_spans[q_id]
+            hit_at_3  = int(any(_contains_gold(h, gold_span) for h in hits))
             top_score = round(hits[0]["score"], 4) if hits else 0.0
+
+            # Which of the top-3 hit, for auditability in the raw results
+            hit_rank = next(
+                (i + 1 for i, h in enumerate(hits) if _contains_gold(h, gold_span)), None
+            )
 
             result = {
                 "query_id":         q_id,
                 "query_type":       q_type,
                 "query_text":       q_text,
                 "strategy":         strategy,
-                "gold_chunk_id":    gold_id,
+                "gold_anchor":      GOLD_ANCHORS[q_id][0],
+                "gold_span":        list(gold_span),
+                "hit_rank":         hit_rank,
                 "retrieved_chunks": [h["chunk_id"] for h in hits],
+                "retrieved_spans":  [[h["char_start"], h["char_end"]] for h in hits],
                 "scores":           [round(h["score"], 4) for h in hits],
                 "top_score":        top_score,
                 "hit_at_3":         hit_at_3,
@@ -281,11 +311,14 @@ def save_comparison_table(table_md: str, output_dir: str = "./results") -> str:
     with open(path, "w", encoding="utf-8") as f:
         f.write("# RAG Retrieval Quality Comparison\n\n")
         f.write(f"**Metric:** Hit-Rate@3 (did the gold chunk appear in top-3 results?)\n\n")
-        f.write(f"**Embedding model:** text-embedding-3-small (1536-dim)\n\n")
+        import embeddings
+        f.write(f"**Embedding model:** {embeddings.EMBEDDING_MODEL} ({embeddings.EMBEDDING_DIM}-dim)\n\n")
+        f.write("**Gold labelling:** answer spans located by verbatim anchor phrase; "
+                f"a hit requires a retrieved chunk to cover \u2265{SPAN_COVERAGE:.0%} of the span.\n\n")
         f.write(table_md)
         f.write("\n\n## Limitations\n\n")
         f.write(
-            "- Single document (50 pages): results may not generalise to larger corpora.\n"
+            "- Single document (16 pages, ~41k characters): results may not generalise to larger corpora.\n"
             "- Single embedding model: a different model may favour different chunking strategies.\n"
             "- Gold labels were manually assigned by a single reviewer — no independently verified ground truth.\n"
             "- Sample size of 10 queries is too small for statistical significance.\n"

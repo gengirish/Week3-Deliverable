@@ -212,14 +212,29 @@ def chunk_semantic(
     sentence_embeddings: list[list[float]],  # pre-computed per-sentence embeddings
     sentences: list[str],                    # sentences aligned with embeddings
     window: int = 3,
-    similarity_threshold: float = 0.85,
+    similarity_threshold: float | None = None,
+    boundary_percentile: float = 25.0,
+    min_chunk_tokens: int = 150,
     max_chunk_tokens: int = 600,
 ) -> list[dict]:
     """
     Build chunks using a sliding window of `window` sentences.
-    A topic boundary is detected when cosine similarity between adjacent windows
-    drops below `similarity_threshold`. Chunks exceeding max_chunk_tokens are
-    hard-split at the nearest sentence boundary.
+    A topic boundary is detected where cosine similarity between adjacent windows
+    drops below the threshold. Chunks exceeding max_chunk_tokens are hard-split at
+    the nearest sentence boundary; chunks under min_chunk_tokens are merged forward.
+
+    Threshold selection:
+        An absolute threshold (the original 0.85) is model-specific — it assumes
+        the similarity distribution of OpenAI embeddings. Different embedding
+        models occupy different similarity ranges, so a fixed cut either splits
+        at nearly every sentence or never splits at all. Measured on this corpus,
+        all-MiniLM-L6-v2 puts 82% of adjacent windows below 0.85, which degenerates
+        into one-sentence chunks.
+
+        So by default the threshold is derived from the corpus itself: cut at the
+        `boundary_percentile` of the observed similarity distribution, marking the
+        weakest transitions as topic boundaries. This adapts to any embedding model.
+        Pass `similarity_threshold` explicitly to override with a fixed value.
 
     `sentence_embeddings` and `sentences` must be aligned (same index = same sentence).
     Call embeddings.embed_sentences() first, then pass results here.
@@ -247,12 +262,24 @@ def chunk_semantic(
         end = min(i + window, n)
         window_embs.append(_window_embedding(sentence_embeddings[i:end]))
 
-    # Detect topic boundaries: where similarity between window i and window i+1
-    # drops below threshold
+    # Similarity between each adjacent pair of windows
+    sims = [
+        _cosine_similarity(window_embs[i], window_embs[i + 1])
+        for i in range(len(window_embs) - 1)
+    ]
+
+    # Resolve the threshold: explicit value, or the corpus's own percentile
+    if similarity_threshold is None:
+        threshold = float(np.percentile(sims, boundary_percentile)) if sims else 0.0
+        print(f"  [chunkers] semantic: adaptive threshold = {threshold:.3f} "
+              f"(p{boundary_percentile:g} of observed similarities)")
+    else:
+        threshold = similarity_threshold
+
+    # Detect topic boundaries where similarity drops below the threshold
     boundaries = [0]  # always start a new chunk at sentence 0
-    for i in range(len(window_embs) - 1):
-        sim = _cosine_similarity(window_embs[i], window_embs[i + 1])
-        if sim < similarity_threshold:
+    for i, sim in enumerate(sims):
+        if sim < threshold:
             boundaries.append(i + 1)
     boundaries.append(n)  # sentinel
 
@@ -261,6 +288,23 @@ def chunk_semantic(
     for b in range(len(boundaries) - 1):
         start, end = boundaries[b], boundaries[b + 1]
         groups.append(sentences[start:end])
+
+    # Merge groups that fall under min_chunk_tokens into the following group.
+    # A topic boundary can fire on a single short sentence (a heading, a caption);
+    # left alone these become chunks too small to answer anything.
+    merged: list[list[str]] = []
+    pending: list[str] = []
+    for group in groups:
+        pending.extend(group)
+        if _token_count(" ".join(pending)) >= min_chunk_tokens:
+            merged.append(pending)
+            pending = []
+    if pending:
+        if merged:
+            merged[-1].extend(pending)   # tail too short to stand alone
+        else:
+            merged.append(pending)
+    groups = merged
 
     # Hard-split groups that exceed max_chunk_tokens
     final_groups: list[list[str]] = []

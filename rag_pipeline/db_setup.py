@@ -7,36 +7,8 @@ Run this once before ingesting any data:
 Verification: queries pg_indexes to confirm the HNSW index was created.
 """
 
-import os
-import psycopg2
-from dotenv import load_dotenv
-
-load_dotenv()
-
-# ---------------------------------------------------------------------------
-# Build a direct psycopg2 connection string from Supabase credentials.
-# Supabase exposes a direct Postgres connection on port 5432.
-# Connection string format: postgresql://postgres:<service_key>@db.<project-ref>.supabase.co:5432/postgres
-# ---------------------------------------------------------------------------
-
-def get_connection():
-    supabase_url = os.environ["SUPABASE_URL"]          # e.g. https://abcdef.supabase.co
-    service_key  = os.environ["SUPABASE_SERVICE_KEY"]  # service role key (not anon key)
-
-    # Extract project ref from URL: https://<ref>.supabase.co
-    project_ref = supabase_url.replace("https://", "").split(".")[0]
-    host = f"db.{project_ref}.supabase.co"
-
-    conn = psycopg2.connect(
-        host=host,
-        port=5432,
-        dbname="postgres",
-        user="postgres",
-        password=service_key,
-        sslmode="require",
-    )
-    return conn
-
+import embeddings
+from db import get_connection
 
 # ---------------------------------------------------------------------------
 # SQL: enable pgvector, create table, create HNSW index
@@ -54,7 +26,7 @@ CREATE TABLE IF NOT EXISTS document_chunks (
     char_end      INTEGER NOT NULL,
     content       TEXT NOT NULL,
     token_count   INTEGER,
-    embedding     VECTOR(1536) NOT NULL
+    embedding     VECTOR({dim}) NOT NULL
 );
 """
 
@@ -76,6 +48,28 @@ WHERE tablename = 'document_chunks';
 """
 
 
+SQL_EXISTING_DIM = """
+SELECT a.atttypmod
+FROM pg_attribute a
+JOIN pg_class c ON c.oid = a.attrelid
+WHERE c.relname = 'document_chunks' AND a.attname = 'embedding' AND a.attnum > 0;
+"""
+
+
+def _drop_if_dim_mismatch(cur):
+    """
+    The vector column width is fixed at CREATE TABLE time. If the table exists
+    with a different width than the active embedding model produces, inserts
+    would fail — so drop and rebuild it.
+    """
+    cur.execute(SQL_EXISTING_DIM)
+    row = cur.fetchone()
+    if row and row[0] not in (None, -1) and row[0] != embeddings.EMBEDDING_DIM:
+        print(f"  Existing table has VECTOR({row[0]}) but model needs "
+              f"VECTOR({embeddings.EMBEDDING_DIM}) — dropping and recreating.")
+        cur.execute("DROP TABLE document_chunks CASCADE;")
+
+
 def setup_database():
     print("Connecting to Supabase Postgres...")
     conn = get_connection()
@@ -85,8 +79,10 @@ def setup_database():
     print("Enabling pgvector extension...")
     cur.execute(SQL_ENABLE_PGVECTOR)
 
-    print("Creating document_chunks table...")
-    cur.execute(SQL_CREATE_TABLE)
+    _drop_if_dim_mismatch(cur)
+
+    print(f"Creating document_chunks table (VECTOR({embeddings.EMBEDDING_DIM}), model={embeddings.EMBEDDING_MODEL})...")
+    cur.execute(SQL_CREATE_TABLE.format(dim=embeddings.EMBEDDING_DIM))
 
     print("Creating HNSW index (m=16, ef_construction=64)...")
     cur.execute(SQL_CREATE_INDEX)

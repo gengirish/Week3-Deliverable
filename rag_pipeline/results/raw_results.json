@@ -1,0 +1,1142 @@
+[
+  {
+    "query_id": "Q1",
+    "query_type": "Fact lookup",
+    "query_text": "What percentage of overlap should I use between chunks?",
+    "strategy": "fixed",
+    "gold_anchor": "10-15% is the working range",
+    "gold_span": [
+      25978,
+      26005
+    ],
+    "hit_rank": null,
+    "retrieved_chunks": [
+      "fixed_001",
+      "fixed_015",
+      "fixed_003"
+    ],
+    "retrieved_spans": [
+      [
+        1901,
+        4050
+      ],
+      [
+        30606,
+        32918
+      ],
+      [
+        5887,
+        8188
+      ]
+    ],
+    "scores": [
+      0.4904,
+      0.4255,
+      0.4103
+    ],
+    "top_score": 0.4904,
+    "hit_at_3": 0
+  },
+  {
+    "query_id": "Q1",
+    "query_type": "Fact lookup",
+    "query_text": "What percentage of overlap should I use between chunks?",
+    "strategy": "structural",
+    "gold_anchor": "10-15% is the working range",
+    "gold_span": [
+      25978,
+      26005
+    ],
+    "hit_rank": null,
+    "retrieved_chunks": [
+      "structural_016",
+      "structural_003",
+      "structural_008"
+    ],
+    "retrieved_spans": [
+      [
+        29833,
+        31801
+      ],
+      [
+        5417,
+        7358
+      ],
+      [
+        15092,
+        16853
+      ]
+    ],
+    "scores": [
+      0.5052,
+      0.4525,
+      0.4435
+    ],
+    "top_score": 0.5052,
+    "hit_at_3": 0
+  },
+  {
+    "query_id": "Q1",
+    "query_type": "Fact lookup",
+    "query_text": "What percentage of overlap should I use between chunks?",
+    "strategy": "semantic",
+    "gold_anchor": "10-15% is the working range",
+    "gold_span": [
+      25978,
+      26005
+    ],
+    "hit_rank": 2,
+    "retrieved_chunks": [
+      "semantic_012",
+      "semantic_019",
+      "semantic_024"
+    ],
+    "retrieved_spans": [
+      [
+        15264,
+        15913
+      ],
+      [
+        25978,
+        27242
+      ],
+      [
+        33264,
+        33995
+      ]
+    ],
+    "scores": [
+      0.4796,
+      0.4586,
+      0.437
+    ],
+    "top_score": 0.4796,
+    "hit_at_3": 1
+  },
+  {
+    "query_id": "Q2",
+    "query_type": "Fact lookup",
+    "query_text": "Who wrote this document and what is their job title?",
+    "strategy": "fixed",
+    "gold_anchor": "Founder & Principal Engineer",
+    "gold_span": [
+      568,
+      596
+    ],
+    "hit_rank": null,
+    "retrieved_chunks": [
+      "fixed_009",
+      "fixed_008",
+      "fixed_018"
+    ],
+    "retrieved_spans": [
+      [
+        18260,
+        20534
+      ],
+      [
+        16322,
+        18481
+      ],
+      [
+        36822,
+        39143
+      ]
+    ],
+    "scores": [
+      0.2337,
+      0.1622,
+      0.1591
+    ],
+    "top_score": 0.2337,
+    "hit_at_3": 0
+  },
+  {
+    "query_id": "Q2",
+    "query_type": "Fact lookup",
+    "query_text": "Who wrote this document and what is their job title?",
+    "strategy": "structural",
+    "gold_anchor": "Founder & Principal Engineer",
+    "gold_span": [
+      568,
+      596
+    ],
+    "hit_rank": null,
+    "retrieved_chunks": [
+      "structural_010",
+      "structural_002",
+      "structural_014"
+    ],
+    "retrieved_spans": [
+      [
+        18573,
+        20501
+      ],
+      [
+        3529,
+        5416
+      ],
+      [
+        26360,
+        27937
+      ]
+    ],
+    "scores": [
+      0.2617,
+      0.2402,
+      0.2163
+    ],
+    "top_score": 0.2617,
+    "hit_at_3": 0
+  },
+  {
+    "query_id": "Q2",
+    "query_type": "Fact lookup",
+    "query_text": "Who wrote this document and what is their job title?",
+    "strategy": "semantic",
+    "gold_anchor": "Founder & Principal Engineer",
+    "gold_span": [
+      568,
+      596
+    ],
+    "hit_rank": null,
+    "retrieved_chunks": [
+      "semantic_009",
+      "semantic_014",
+      "semantic_003"
+    ],
+    "retrieved_spans": [
+      [
+        10418,
+        11695
+      ],
+      [
+        17609,
+        20079
+      ],
+      [
+        4026,
+        6737
+      ]
+    ],
+    "scores": [
+      0.1895,
+      0.1798,
+      0.1708
+    ],
+    "top_score": 0.1895,
+    "hit_at_3": 0
+  },
+  {
+    "query_id": "Q3",
+    "query_type": "Fact lookup",
+    "query_text": "What does late chunking mean?",
+    "strategy": "fixed",
+    "gold_anchor": "late chunking - encoding the whole document first and pooling per-chunk vectors afterwards",
+    "gold_span": [
+      5656,
+      5746
+    ],
+    "hit_rank": null,
+    "retrieved_chunks": [
+      "fixed_014",
+      "fixed_012",
+      "fixed_003"
+    ],
+    "retrieved_spans": [
+      [
+        28553,
+        30897
+      ],
+      [
+        24524,
+        26878
+      ],
+      [
+        5887,
+        8188
+      ]
+    ],
+    "scores": [
+      0.332,
+      0.3064,
+      0.294
+    ],
+    "top_score": 0.332,
+    "hit_at_3": 0
+  },
+  {
+    "query_id": "Q3",
+    "query_type": "Fact lookup",
+    "query_text": "What does late chunking mean?",
+    "strategy": "structural",
+    "gold_anchor": "late chunking - encoding the whole document first and pooling per-chunk vectors afterwards",
+    "gold_span": [
+      5656,
+      5746
+    ],
+    "hit_rank": 3,
+    "retrieved_chunks": [
+      "structural_016",
+      "structural_001",
+      "structural_003"
+    ],
+    "retrieved_spans": [
+      [
+        29833,
+        31801
+      ],
+      [
+        1742,
+        3528
+      ],
+      [
+        5417,
+        7358
+      ]
+    ],
+    "scores": [
+      0.4653,
+      0.3572,
+      0.3226
+    ],
+    "top_score": 0.4653,
+    "hit_at_3": 1
+  },
+  {
+    "query_id": "Q3",
+    "query_type": "Fact lookup",
+    "query_text": "What does late chunking mean?",
+    "strategy": "semantic",
+    "gold_anchor": "late chunking - encoding the whole document first and pooling per-chunk vectors afterwards",
+    "gold_span": [
+      5656,
+      5746
+    ],
+    "hit_rank": null,
+    "retrieved_chunks": [
+      "semantic_026",
+      "semantic_022",
+      "semantic_021"
+    ],
+    "retrieved_spans": [
+      [
+        34842,
+        35565
+      ],
+      [
+        30118,
+        30881
+      ],
+      [
+        28407,
+        30117
+      ]
+    ],
+    "scores": [
+      0.4096,
+      0.4008,
+      0.3727
+    ],
+    "top_score": 0.4096,
+    "hit_at_3": 0
+  },
+  {
+    "query_id": "Q4",
+    "query_type": "Multi-sentence",
+    "query_text": "Why should overlap be set to zero when using structure-aware boundaries?",
+    "strategy": "fixed",
+    "gold_anchor": "If you have adopted structure-aware boundaries, set overlap to zero",
+    "gold_span": [
+      26275,
+      26342
+    ],
+    "hit_rank": null,
+    "retrieved_chunks": [
+      "fixed_007",
+      "fixed_000",
+      "fixed_004"
+    ],
+    "retrieved_spans": [
+      [
+        14287,
+        16549
+      ],
+      [
+        0,
+        2099
+      ],
+      [
+        7932,
+        10233
+      ]
+    ],
+    "scores": [
+      0.2721,
+      0.2688,
+      0.2472
+    ],
+    "top_score": 0.2721,
+    "hit_at_3": 0
+  },
+  {
+    "query_id": "Q4",
+    "query_type": "Multi-sentence",
+    "query_text": "Why should overlap be set to zero when using structure-aware boundaries?",
+    "strategy": "structural",
+    "gold_anchor": "If you have adopted structure-aware boundaries, set overlap to zero",
+    "gold_span": [
+      26275,
+      26342
+    ],
+    "hit_rank": null,
+    "retrieved_chunks": [
+      "structural_016",
+      "structural_004",
+      "structural_003"
+    ],
+    "retrieved_spans": [
+      [
+        29833,
+        31801
+      ],
+      [
+        7359,
+        9231
+      ],
+      [
+        5417,
+        7358
+      ]
+    ],
+    "scores": [
+      0.3548,
+      0.34,
+      0.3082
+    ],
+    "top_score": 0.3548,
+    "hit_at_3": 0
+  },
+  {
+    "query_id": "Q4",
+    "query_type": "Multi-sentence",
+    "query_text": "Why should overlap be set to zero when using structure-aware boundaries?",
+    "strategy": "semantic",
+    "gold_anchor": "If you have adopted structure-aware boundaries, set overlap to zero",
+    "gold_span": [
+      26275,
+      26342
+    ],
+    "hit_rank": null,
+    "retrieved_chunks": [
+      "semantic_006",
+      "semantic_014",
+      "semantic_012"
+    ],
+    "retrieved_spans": [
+      [
+        8033,
+        9079
+      ],
+      [
+        17609,
+        20079
+      ],
+      [
+        15264,
+        15913
+      ]
+    ],
+    "scores": [
+      0.3441,
+      0.3319,
+      0.3262
+    ],
+    "top_score": 0.3441,
+    "hit_at_3": 0
+  },
+  {
+    "query_id": "Q5",
+    "query_type": "Multi-sentence",
+    "query_text": "What evidence shows that adding document context reduces retrieval failures?",
+    "strategy": "fixed",
+    "gold_anchor": "cut top-20 retrieval failures by 35% on its own, 49% with contextual BM25",
+    "gold_span": [
+      5319,
+      5392
+    ],
+    "hit_rank": 1,
+    "retrieved_chunks": [
+      "fixed_002",
+      "fixed_005",
+      "fixed_006"
+    ],
+    "retrieved_spans": [
+      [
+        3827,
+        6127
+      ],
+      [
+        9995,
+        12311
+      ],
+      [
+        12083,
+        14530
+      ]
+    ],
+    "scores": [
+      0.5654,
+      0.5546,
+      0.5498
+    ],
+    "top_score": 0.5654,
+    "hit_at_3": 1
+  },
+  {
+    "query_id": "Q5",
+    "query_type": "Multi-sentence",
+    "query_text": "What evidence shows that adding document context reduces retrieval failures?",
+    "strategy": "structural",
+    "gold_anchor": "cut top-20 retrieval failures by 35% on its own, 49% with contextual BM25",
+    "gold_span": [
+      5319,
+      5392
+    ],
+    "hit_rank": 1,
+    "retrieved_chunks": [
+      "structural_002",
+      "structural_007",
+      "structural_010"
+    ],
+    "retrieved_spans": [
+      [
+        3529,
+        5416
+      ],
+      [
+        13081,
+        15091
+      ],
+      [
+        18573,
+        20501
+      ]
+    ],
+    "scores": [
+      0.5068,
+      0.4838,
+      0.4295
+    ],
+    "top_score": 0.5068,
+    "hit_at_3": 1
+  },
+  {
+    "query_id": "Q5",
+    "query_type": "Multi-sentence",
+    "query_text": "What evidence shows that adding document context reduces retrieval failures?",
+    "strategy": "semantic",
+    "gold_anchor": "cut top-20 retrieval failures by 35% on its own, 49% with contextual BM25",
+    "gold_span": [
+      5319,
+      5392
+    ],
+    "hit_rank": 1,
+    "retrieved_chunks": [
+      "semantic_003",
+      "semantic_008",
+      "semantic_010"
+    ],
+    "retrieved_spans": [
+      [
+        4026,
+        6737
+      ],
+      [
+        10417,
+        11307
+      ],
+      [
+        12586,
+        13491
+      ]
+    ],
+    "scores": [
+      0.5955,
+      0.5892,
+      0.5539
+    ],
+    "top_score": 0.5955,
+    "hit_at_3": 1
+  },
+  {
+    "query_id": "Q6",
+    "query_type": "Multi-sentence",
+    "query_text": "What are the five questions in the decision path, and in what order?",
+    "strategy": "fixed",
+    "gold_anchor": "Structure → answer shape → chunk independence → budget and churn → citation and access control",
+    "gold_span": [
+      1312,
+      1406
+    ],
+    "hit_rank": 3,
+    "retrieved_chunks": [
+      "fixed_007",
+      "fixed_004",
+      "fixed_000"
+    ],
+    "retrieved_spans": [
+      [
+        14287,
+        16549
+      ],
+      [
+        7932,
+        10233
+      ],
+      [
+        0,
+        2099
+      ]
+    ],
+    "scores": [
+      0.4812,
+      0.3318,
+      0.3191
+    ],
+    "top_score": 0.4812,
+    "hit_at_3": 1
+  },
+  {
+    "query_id": "Q6",
+    "query_type": "Multi-sentence",
+    "query_text": "What are the five questions in the decision path, and in what order?",
+    "strategy": "structural",
+    "gold_anchor": "Structure → answer shape → chunk independence → budget and churn → citation and access control",
+    "gold_span": [
+      1312,
+      1406
+    ],
+    "hit_rank": 3,
+    "retrieved_chunks": [
+      "structural_004",
+      "structural_017",
+      "structural_000"
+    ],
+    "retrieved_spans": [
+      [
+        7359,
+        9231
+      ],
+      [
+        29834,
+        31733
+      ],
+      [
+        0,
+        1741
+      ]
+    ],
+    "scores": [
+      0.3751,
+      0.324,
+      0.3191
+    ],
+    "top_score": 0.3751,
+    "hit_at_3": 1
+  },
+  {
+    "query_id": "Q6",
+    "query_type": "Multi-sentence",
+    "query_text": "What are the five questions in the decision path, and in what order?",
+    "strategy": "semantic",
+    "gold_anchor": "Structure → answer shape → chunk independence → budget and churn → citation and access control",
+    "gold_span": [
+      1312,
+      1406
+    ],
+    "hit_rank": 1,
+    "retrieved_chunks": [
+      "semantic_001",
+      "semantic_011",
+      "semantic_000"
+    ],
+    "retrieved_spans": [
+      [
+        790,
+        3328
+      ],
+      [
+        13492,
+        15263
+      ],
+      [
+        0,
+        789
+      ]
+    ],
+    "scores": [
+      0.359,
+      0.357,
+      0.2926
+    ],
+    "top_score": 0.359,
+    "hit_at_3": 1
+  },
+  {
+    "query_id": "Q7",
+    "query_type": "Cross-section",
+    "query_text": "What goes wrong when a chunk refers to something defined in an earlier chunk?",
+    "strategy": "fixed",
+    "gold_anchor": "Orphan references",
+    "gold_span": [
+      29718,
+      29735
+    ],
+    "hit_rank": null,
+    "retrieved_chunks": [
+      "fixed_003",
+      "fixed_000",
+      "fixed_013"
+    ],
+    "retrieved_spans": [
+      [
+        5887,
+        8188
+      ],
+      [
+        0,
+        2099
+      ],
+      [
+        26691,
+        28813
+      ]
+    ],
+    "scores": [
+      0.5602,
+      0.4368,
+      0.4251
+    ],
+    "top_score": 0.5602,
+    "hit_at_3": 0
+  },
+  {
+    "query_id": "Q7",
+    "query_type": "Cross-section",
+    "query_text": "What goes wrong when a chunk refers to something defined in an earlier chunk?",
+    "strategy": "structural",
+    "gold_anchor": "Orphan references",
+    "gold_span": [
+      29718,
+      29735
+    ],
+    "hit_rank": null,
+    "retrieved_chunks": [
+      "structural_016",
+      "structural_003",
+      "structural_008"
+    ],
+    "retrieved_spans": [
+      [
+        29833,
+        31801
+      ],
+      [
+        5417,
+        7358
+      ],
+      [
+        15092,
+        16853
+      ]
+    ],
+    "scores": [
+      0.5726,
+      0.5005,
+      0.497
+    ],
+    "top_score": 0.5726,
+    "hit_at_3": 0
+  },
+  {
+    "query_id": "Q7",
+    "query_type": "Cross-section",
+    "query_text": "What goes wrong when a chunk refers to something defined in an earlier chunk?",
+    "strategy": "semantic",
+    "gold_anchor": "Orphan references",
+    "gold_span": [
+      29718,
+      29735
+    ],
+    "hit_rank": null,
+    "retrieved_chunks": [
+      "semantic_012",
+      "semantic_017",
+      "semantic_022"
+    ],
+    "retrieved_spans": [
+      [
+        15264,
+        15913
+      ],
+      [
+        24226,
+        25047
+      ],
+      [
+        30118,
+        30881
+      ]
+    ],
+    "scores": [
+      0.536,
+      0.5252,
+      0.5097
+    ],
+    "top_score": 0.536,
+    "hit_at_3": 0
+  },
+  {
+    "query_id": "Q8",
+    "query_type": "Cross-section",
+    "query_text": "What are the anti-patterns that quietly destroy retrieval recall?",
+    "strategy": "fixed",
+    "gold_anchor": "Eight anti-patterns that quietly destroy recall",
+    "gold_span": [
+      29480,
+      29527
+    ],
+    "hit_rank": 1,
+    "retrieved_chunks": [
+      "fixed_014",
+      "fixed_016",
+      "fixed_015"
+    ],
+    "retrieved_spans": [
+      [
+        28553,
+        30897
+      ],
+      [
+        32700,
+        35035
+      ],
+      [
+        30606,
+        32918
+      ]
+    ],
+    "scores": [
+      0.4379,
+      0.3835,
+      0.3546
+    ],
+    "top_score": 0.4379,
+    "hit_at_3": 1
+  },
+  {
+    "query_id": "Q8",
+    "query_type": "Cross-section",
+    "query_text": "What are the anti-patterns that quietly destroy retrieval recall?",
+    "strategy": "structural",
+    "gold_anchor": "Eight anti-patterns that quietly destroy recall",
+    "gold_span": [
+      29480,
+      29527
+    ],
+    "hit_rank": null,
+    "retrieved_chunks": [
+      "structural_001",
+      "structural_016",
+      "structural_017"
+    ],
+    "retrieved_spans": [
+      [
+        1742,
+        3528
+      ],
+      [
+        29833,
+        31801
+      ],
+      [
+        29834,
+        31733
+      ]
+    ],
+    "scores": [
+      0.4724,
+      0.3383,
+      0.3235
+    ],
+    "top_score": 0.4724,
+    "hit_at_3": 0
+  },
+  {
+    "query_id": "Q8",
+    "query_type": "Cross-section",
+    "query_text": "What are the anti-patterns that quietly destroy retrieval recall?",
+    "strategy": "semantic",
+    "gold_anchor": "Eight anti-patterns that quietly destroy recall",
+    "gold_span": [
+      29480,
+      29527
+    ],
+    "hit_rank": 2,
+    "retrieved_chunks": [
+      "semantic_022",
+      "semantic_021",
+      "semantic_025"
+    ],
+    "retrieved_spans": [
+      [
+        30118,
+        30881
+      ],
+      [
+        28407,
+        30117
+      ],
+      [
+        33996,
+        34841
+      ]
+    ],
+    "scores": [
+      0.4882,
+      0.3725,
+      0.357
+    ],
+    "top_score": 0.4882,
+    "hit_at_3": 1
+  },
+  {
+    "query_id": "Q9",
+    "query_type": "Cross-section",
+    "query_text": "How should legal contracts be chunked compared to source code repositories?",
+    "strategy": "fixed",
+    "gold_anchor": "Clauses are the legal unit of meaning",
+    "gold_span": [
+      18261,
+      18298
+    ],
+    "hit_rank": 3,
+    "retrieved_chunks": [
+      "fixed_003",
+      "fixed_012",
+      "fixed_009"
+    ],
+    "retrieved_spans": [
+      [
+        5887,
+        8188
+      ],
+      [
+        24524,
+        26878
+      ],
+      [
+        18260,
+        20534
+      ]
+    ],
+    "scores": [
+      0.4291,
+      0.3956,
+      0.3931
+    ],
+    "top_score": 0.4291,
+    "hit_at_3": 1
+  },
+  {
+    "query_id": "Q9",
+    "query_type": "Cross-section",
+    "query_text": "How should legal contracts be chunked compared to source code repositories?",
+    "strategy": "structural",
+    "gold_anchor": "Clauses are the legal unit of meaning",
+    "gold_span": [
+      18261,
+      18298
+    ],
+    "hit_rank": null,
+    "retrieved_chunks": [
+      "structural_013",
+      "structural_003",
+      "structural_016"
+    ],
+    "retrieved_spans": [
+      [
+        24430,
+        26359
+      ],
+      [
+        5417,
+        7358
+      ],
+      [
+        29833,
+        31801
+      ]
+    ],
+    "scores": [
+      0.3729,
+      0.3601,
+      0.3526
+    ],
+    "top_score": 0.3729,
+    "hit_at_3": 0
+  },
+  {
+    "query_id": "Q9",
+    "query_type": "Cross-section",
+    "query_text": "How should legal contracts be chunked compared to source code repositories?",
+    "strategy": "semantic",
+    "gold_anchor": "Clauses are the legal unit of meaning",
+    "gold_span": [
+      18261,
+      18298
+    ],
+    "hit_rank": 1,
+    "retrieved_chunks": [
+      "semantic_014",
+      "semantic_007",
+      "semantic_002"
+    ],
+    "retrieved_spans": [
+      [
+        17609,
+        20079
+      ],
+      [
+        9080,
+        10416
+      ],
+      [
+        3329,
+        4026
+      ]
+    ],
+    "scores": [
+      0.4011,
+      0.3767,
+      0.3722
+    ],
+    "top_score": 0.4011,
+    "hit_at_3": 1
+  },
+  {
+    "query_id": "Q10",
+    "query_type": "Boundary",
+    "query_text": "After building the golden set, what is the next step in the eval loop?",
+    "strategy": "fixed",
+    "gold_anchor": "Measure five things",
+    "gold_span": [
+      32892,
+      32911
+    ],
+    "hit_rank": null,
+    "retrieved_chunks": [
+      "fixed_001",
+      "fixed_017",
+      "fixed_000"
+    ],
+    "retrieved_spans": [
+      [
+        1901,
+        4050
+      ],
+      [
+        34789,
+        37090
+      ],
+      [
+        0,
+        2099
+      ]
+    ],
+    "scores": [
+      0.3421,
+      0.2753,
+      0.2414
+    ],
+    "top_score": 0.3421,
+    "hit_at_3": 0
+  },
+  {
+    "query_id": "Q10",
+    "query_type": "Boundary",
+    "query_text": "After building the golden set, what is the next step in the eval loop?",
+    "strategy": "structural",
+    "gold_anchor": "Measure five things",
+    "gold_span": [
+      32892,
+      32911
+    ],
+    "hit_rank": null,
+    "retrieved_chunks": [
+      "structural_017",
+      "structural_000",
+      "structural_001"
+    ],
+    "retrieved_spans": [
+      [
+        29834,
+        31733
+      ],
+      [
+        0,
+        1741
+      ],
+      [
+        1742,
+        3528
+      ]
+    ],
+    "scores": [
+      0.338,
+      0.2414,
+      0.1977
+    ],
+    "top_score": 0.338,
+    "hit_at_3": 0
+  },
+  {
+    "query_id": "Q10",
+    "query_type": "Boundary",
+    "query_text": "After building the golden set, what is the next step in the eval loop?",
+    "strategy": "semantic",
+    "gold_anchor": "Measure five things",
+    "gold_span": [
+      32892,
+      32911
+    ],
+    "hit_rank": null,
+    "retrieved_chunks": [
+      "semantic_026",
+      "semantic_024",
+      "semantic_006"
+    ],
+    "retrieved_spans": [
+      [
+        34842,
+        35565
+      ],
+      [
+        33264,
+        33995
+      ],
+      [
+        8033,
+        9079
+      ]
+    ],
+    "scores": [
+      0.3145,
+      0.2294,
+      0.2055
+    ],
+    "top_score": 0.3145,
+    "hit_at_3": 0
+  }
+]
