@@ -200,8 +200,11 @@ def main():
     )
     args = parser.parse_args()
 
-    # Validate required env vars
-    required_vars = ["SUPABASE_URL", "SUPABASE_SERVICE_KEY", "OPENAI_API_KEY"]
+    # Validate required env vars. OPENAI_API_KEY is only needed when the OpenAI
+    # provider is selected — the default local model needs no key at all.
+    required_vars = ["SUPABASE_URL", "SUPABASE_SERVICE_KEY", "SUPABASE_DB_PASSWORD"]
+    if os.environ.get("EMBEDDING_PROVIDER", "local").lower() == "openai":
+        required_vars.append("OPENAI_API_KEY")
     missing = [v for v in required_vars if not os.environ.get(v)]
     if missing:
         print(f"ERROR: Missing required environment variables: {', '.join(missing)}")

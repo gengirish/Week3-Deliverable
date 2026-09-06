@@ -6,8 +6,13 @@ password set when the project was created (SUPABASE_DB_PASSWORD).
 
 Connection preference:
     1. SUPABASE_DB_URL, if set (full libpq URL — overrides everything)
-    2. Direct connection: db.<project-ref>.supabase.co:5432 (IPv6-only on many networks)
-    3. Session pooler:    aws-0-<region>.pooler.supabase.com:5432 (IPv4 fallback)
+    2. Direct connection: db.<project-ref>.supabase.co:5432
+    3. Supavisor session pooler (IPv4 fallback), host from SUPABASE_POOLER_HOST
+       or derived from SUPABASE_REGION
+
+The direct host is IPv6-only unless the IPv4 add-on is purchased, so it fails to
+resolve on networks that do not route IPv6. It works on some networks and not
+others, which is why both are tried in order rather than one being chosen here.
 """
 
 import os
@@ -42,12 +47,14 @@ def get_connection():
     ref = _project_ref()
     password = _db_password()
     region = os.environ.get("SUPABASE_REGION", "ap-south-1")
+    pooler_host = os.environ.get(
+        "SUPABASE_POOLER_HOST", f"aws-0-{region}.pooler.supabase.com"
+    )
 
     candidates = [
         # (label, kwargs)
         ("direct", dict(host=f"db.{ref}.supabase.co", port=5432, user="postgres")),
-        ("pooler", dict(host=f"aws-0-{region}.pooler.supabase.com", port=5432,
-                        user=f"postgres.{ref}")),
+        ("pooler", dict(host=pooler_host, port=5432, user=f"postgres.{ref}")),
     ]
 
     last_error = None
