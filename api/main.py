@@ -8,6 +8,7 @@ Run:
     uvicorn main:app --reload --port 8000     (from the api/ directory)
 """
 
+import os
 import shutil
 import threading
 from contextlib import asynccontextmanager
@@ -53,9 +54,12 @@ app = FastAPI(
 
 # Next.js picks the next free port when 3000 is taken, so match localhost on any
 # port rather than pinning one and breaking the demo when the port shifts.
+# Deployments add their frontend's origin through CORS_ORIGIN_REGEX.
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"http://(localhost|127\.0\.0\.1):\d+",
+    allow_origin_regex=os.environ.get(
+        "CORS_ORIGIN_REGEX", r"http://(localhost|127\.0\.0\.1):\d+"
+    ),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
