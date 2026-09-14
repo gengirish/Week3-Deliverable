@@ -1,0 +1,13 @@
+.git
+.github
+web
+diagrams
+**/.venv
+**/venv
+**/__pycache__
+**/*.pyc
+**/.env
+rag_pipeline/data/uploads
+rag_pipeline/supabase
+rag_pipeline/results/active_document.json
+rag_pipeline/results/eval_run.json

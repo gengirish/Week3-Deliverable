@@ -1,0 +1,3 @@
+# archify visual-check evidence — regenerate with:
+#   node ~/.claude/skills/archify/bin/archify.mjs visual-check rag-chunking-lab.html --json
+*.visual-check.*

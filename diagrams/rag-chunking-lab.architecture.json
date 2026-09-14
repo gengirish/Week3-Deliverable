@@ -1,0 +1,445 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "RAG Chunking Lab — Runtime Architecture",
+    "output": "rag-chunking-lab.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/gengirish/Week3-Deliverable",
+      "provider": "github",
+      "revision": "71e089e2a2be85058025cd4fa4be4a943ed99b67"
+    },
+    "views": [
+      {
+        "id": "request-path",
+        "label": "Browser request path",
+        "focus": [
+          "browser",
+          "web",
+          "api",
+          "service",
+          "jobs"
+        ],
+        "note": "How a click in the UI reaches the pipeline and how progress comes back."
+      },
+      {
+        "id": "indexing",
+        "label": "Indexing pipeline",
+        "focus": [
+          "service",
+          "ingest",
+          "chunkers",
+          "embeddings",
+          "db"
+        ],
+        "note": "One PDF becomes three chunk sets in a single vector table."
+      },
+      {
+        "id": "retrieval",
+        "label": "Retrieval and benchmark",
+        "focus": [
+          "service",
+          "query",
+          "embeddings",
+          "db",
+          "cli"
+        ],
+        "note": "One query embedding, three strategy-filtered searches, scored Hit-Rate@3."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "browser",
+      "type": "external",
+      "label": "Browser",
+      "sublabel": "localhost:3001",
+      "pos": [
+        40,
+        260
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "web",
+      "type": "frontend",
+      "label": "Next.js App",
+      "sublabel": "App Router · 4 tabs",
+      "brand": "next-js",
+      "pos": [
+        250,
+        260
+      ],
+      "size": [
+        170,
+        64
+      ],
+      "sources": [
+        {
+          "path": "web/app/page.tsx"
+        },
+        {
+          "path": "web/lib/api.ts",
+          "label": "typed client"
+        }
+      ]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "FastAPI",
+      "sublabel": "uvicorn :8010",
+      "brand": "fastapi",
+      "tag": "CORS localhost:*",
+      "pos": [
+        470,
+        260
+      ],
+      "size": [
+        170,
+        64
+      ],
+      "sources": [
+        {
+          "path": "api/main.py"
+        }
+      ]
+    },
+    {
+      "id": "jobs",
+      "type": "backend",
+      "label": "Job registry",
+      "sublabel": "in-memory · threaded",
+      "pos": [
+        470,
+        80
+      ],
+      "size": [
+        170,
+        64
+      ],
+      "sources": [
+        {
+          "path": "api/jobs.py"
+        }
+      ]
+    },
+    {
+      "id": "service",
+      "type": "backend",
+      "label": "Service layer",
+      "sublabel": "orchestration only",
+      "pos": [
+        700,
+        260
+      ],
+      "size": [
+        170,
+        64
+      ],
+      "sources": [
+        {
+          "path": "api/service.py"
+        }
+      ]
+    },
+    {
+      "id": "ingest",
+      "type": "backend",
+      "label": "PDF extraction",
+      "sublabel": "pdfplumber · clean + offsets",
+      "pos": [
+        700,
+        80
+      ],
+      "size": [
+        170,
+        64
+      ],
+      "sources": [
+        {
+          "path": "rag_pipeline/ingest.py"
+        }
+      ]
+    },
+    {
+      "id": "chunkers",
+      "type": "backend",
+      "label": "Chunkers ×3",
+      "sublabel": "fixed · structural · semantic",
+      "pos": [
+        930,
+        80
+      ],
+      "size": [
+        170,
+        64
+      ],
+      "sources": [
+        {
+          "path": "rag_pipeline/chunkers.py"
+        }
+      ]
+    },
+    {
+      "id": "embeddings",
+      "type": "backend",
+      "label": "Embeddings",
+      "sublabel": "all-MiniLM-L6-v2 · 384d",
+      "tag": "provider-agnostic",
+      "pos": [
+        930,
+        260
+      ],
+      "size": [
+        170,
+        64
+      ],
+      "sources": [
+        {
+          "path": "rag_pipeline/embeddings.py"
+        }
+      ]
+    },
+    {
+      "id": "query",
+      "type": "backend",
+      "label": "Retrieval + eval",
+      "sublabel": "top-3 · Hit-Rate@3",
+      "pos": [
+        700,
+        440
+      ],
+      "size": [
+        170,
+        64
+      ],
+      "sources": [
+        {
+          "path": "rag_pipeline/query.py"
+        }
+      ]
+    },
+    {
+      "id": "openai",
+      "type": "external",
+      "label": "OpenAI API",
+      "sublabel": "text-embedding-3-small · 1536d",
+      "brand": "openai",
+      "pos": [
+        1160,
+        80
+      ],
+      "size": [
+        190,
+        64
+      ]
+    },
+    {
+      "id": "db",
+      "type": "database",
+      "label": "Supabase Postgres",
+      "sublabel": "pgvector · document_chunks",
+      "brand": "supabase",
+      "tag": "HNSW cosine",
+      "pos": [
+        1160,
+        440
+      ],
+      "size": [
+        190,
+        64
+      ],
+      "sources": [
+        {
+          "path": "rag_pipeline/db_setup.py"
+        },
+        {
+          "path": "rag_pipeline/db.py",
+          "label": "connection"
+        }
+      ]
+    },
+    {
+      "id": "cli",
+      "type": "external",
+      "label": "Pipeline CLI",
+      "sublabel": "python main.py",
+      "brand": "python",
+      "pos": [
+        40,
+        440
+      ],
+      "size": [
+        150,
+        64
+      ],
+      "sources": [
+        {
+          "path": "rag_pipeline/main.py"
+        }
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Local dev machine · ./dev.sh",
+      "wraps": [
+        "browser",
+        "web",
+        "api",
+        "jobs",
+        "service",
+        "ingest",
+        "chunkers",
+        "embeddings",
+        "query",
+        "cli"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "browser-to-web",
+      "from": "browser",
+      "to": "web",
+      "label": "HTTP",
+      "variant": "emphasis"
+    },
+    {
+      "id": "web-to-api",
+      "from": "web",
+      "to": "api",
+      "label": "fetch /api/*",
+      "variant": "emphasis",
+      "labelDy": -26
+    },
+    {
+      "id": "api-to-service",
+      "from": "api",
+      "to": "service",
+      "label": "calls",
+      "variant": "emphasis"
+    },
+    {
+      "id": "api-to-jobs",
+      "from": "api",
+      "to": "jobs",
+      "label": "job id · polled progress",
+      "variant": "dashed"
+    },
+    {
+      "id": "service-to-ingest",
+      "from": "service",
+      "to": "ingest",
+      "label": "index run"
+    },
+    {
+      "id": "ingest-to-chunkers",
+      "from": "ingest",
+      "to": "chunkers",
+      "label": "cleaned text + offsets",
+      "labelDy": -26
+    },
+    {
+      "id": "chunkers-to-embeddings",
+      "from": "chunkers",
+      "to": "embeddings",
+      "label": "3 chunk sets",
+      "labelDy": 24
+    },
+    {
+      "id": "embeddings-to-db",
+      "from": "embeddings",
+      "to": "db",
+      "label": "INSERT vectors",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "via": [
+        [
+          1015,
+          382
+        ],
+        [
+          1255,
+          382
+        ]
+      ]
+    },
+    {
+      "id": "embeddings-to-openai",
+      "from": "embeddings",
+      "to": "openai",
+      "label": "optional provider",
+      "variant": "dashed",
+      "fromSide": "right",
+      "toSide": "bottom",
+      "via": [
+        [
+          1255,
+          292
+        ]
+      ]
+    },
+    {
+      "id": "service-to-query",
+      "from": "service",
+      "to": "query",
+      "label": "search · benchmark",
+      "labelDy": 24
+    },
+    {
+      "id": "query-to-embeddings",
+      "from": "query",
+      "to": "embeddings",
+      "label": "embed_query()"
+    },
+    {
+      "id": "query-to-db",
+      "from": "query",
+      "to": "db",
+      "label": "cosine top-3 per strategy"
+    },
+    {
+      "id": "cli-to-query",
+      "from": "cli",
+      "to": "query",
+      "label": "--phase query",
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Request path",
+      "items": [
+        "Browser → Next.js :3001 → FastAPI :8010",
+        "Indexing and eval return a job id; the UI polls /api/jobs/{id}",
+        "The API holds no retrieval logic — it calls the modules the CLI does"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Indexing pipeline",
+      "items": [
+        "pdfplumber extraction keeps character offsets per page",
+        "Fixed 500/50 · structural 400-token · semantic window=3, θ=0.85",
+        "All three chunk sets land in one document_chunks table"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Retrieval and scoring",
+      "items": [
+        "One query embedding, three strategy-filtered searches",
+        "pgvector HNSW, cosine distance, top-3 per strategy",
+        "Hit-Rate@3 scored against answer spans, not chunk ids"
+      ]
+    }
+  ]
+}
